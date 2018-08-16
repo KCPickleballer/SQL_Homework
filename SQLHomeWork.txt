@@ -1,0 +1,490 @@
+USE sakila;
+
+1a.	
+SELECT First_name, last_name FROM actor
+
+PENELOPE	GUINESS
+..
+
+1b.	
+SELECT UPPER(CONCAT(first_name, " ", last_name)) AS 'Actor Name' 
+FROM actor
+
+
+RESULTS:
+ADAM HOPPER
+AL GARLAND
+ALAN DREYFUSS
+
+2a.  SELECT actor_id, First_name , last_name 
+
+FROM actor
+
+where First_name = 'Joe';
+
+
+JOE	SWANK
+
+2b.  
+SELECT actor_id, First_name , last_name 
+
+FROM actor
+
+where UPPER(Last_name) LIKE '%GEN%';
+
+
+2c.	
+
+SELECT actor_id, First_name , last_name 
+
+FROM actor
+where UPPER(Last_name) LIKE '%LI%'
+
+ORDER BY last_name, first_name
+
+86	GREG	CHAPLIN
+82	WOODY	JOLIE
+34	AUDREY	OLIVIER
+15	CUBA	OLIVIER
+172	GROUCHO	WILLIAMS
+137	MORGAN	WILLIAMS
+72	SEAN	WILLIAMS
+83	BEN	WILLIS
+96	GENE	WILLIS
+164	HUMPHREY	WILLIS
+		
+3a.	
+ALTER TABLE actor ADD Middle_Name VARCHAR(50) AFTER First_name
+
+3b. 	
+ALTER TABLE actor MODIFY Middle_Name  BLOB;
+
+3d	
+ALTER TABLE actor DROP Middle_Name;
+
+4a.	
+SELECT Last_name, COUNT(*)
+
+FROM actor
+GROUP BY last_name
+
+ORDER BY last_name
+
+AKROYD	3
+ALLEN	3
+ASTAIRE	1
+BACALL	1
+BAILEY	2
+..
+
+4b.
+
+select Last_name, count(*)
+
+from actor
+
+group by last_name
+
+having count(*) > 1
+
+order by last_name
+
+4c.
+
+UPDATE actor SET First_name = 'Harpo'
+
+WHERE first_name = 'Groucho'
+
+AND last_name = 'Williams'
+
+
+4d. ???
+UPDATE actor SET First_name =
+ CASE WHEN First_name = Harpo'
+
+        THEN 'Groucho'
+      ELSE 'Mucho Groucho'
+ END
+where first_name = 'Harpo'
+
+5a.
+show create table sakila.address;
+
+
+CREATE TABLE `address` (   `address_id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,   
+`address` varchar(50) NOT NULL,   
+`address2` varchar(50) DEFAULT NULL,   
+`district` varchar(20) NOT NULL,   
+`city_id` smallint(5) unsigned NOT NULL,   
+`postal_code` varchar(10) DEFAULT NULL,   
+`phone` varchar(20) NOT NULL,   
+`location` geometry NOT NULL,   
+`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,   
+PRIMARY KEY (`address_id`),   
+KEY `idx_fk_city_id` (`city_id`),   
+SPATIAL KEY `idx_location` (`location`),   
+CONSTRAINT `fk_address_city` 
+FOREIGN KEY (`city_id`) 
+REFERENCES `city` (`city_id`) ON UPDATE CASCADE ) 
+ENGINE=InnoDB AUTO_INCREMENT=606 DEFAULT CHARSET=utf8
+
+6a.
+SELECT a.First_name, a.Last_name, b.address
+
+FROM actor a
+
+JOIN address b ON
+
+	a.actor_id = b.address_id
+
+
+
+6b.
+SELECT a.staff_id, a.First_name, a.Last_name, sum(b.amount) Tot_Rung_Up
+
+FROM staff a
+
+JOIN payment b ON
+
+a.staff_id = b.staff_id
+
+WHERE b.payment_date BETWEEN '2005-08-01 00:00:00' AND '2005-08-31 23:59:59'
+
+GROUP BY a.staff_id, a.First_name, a.Last_name;
+
+
+6c.
+SELECT f.title, COUNT(DISTINCT actor_id)
+
+FROM film f
+
+INNER JOIN film_actor fa on
+
+	f.film_id = fa.film_id
+
+GROUP BY f.title
+
+ORDER BY 2 desc, 1
+
+
+results:
+LAMBS CINCINATTI	15
+BOONDOCK BALLROOM	13
+CHITTY LOCK	13
+CRAZY HOME	13
+DRACULA CRYSTAL	13
+..
+
+6d.
+SELECT COUNT(*)  
+
+FROM inventory i 
+
+JOIN film f on 
+
+	i.film_id = f.film_id 
+
+WHERE f.title = 'Hunchback Impossible' 
+
+
+results:
+6e.
+SELECT c.customer_id, c.first_name, c.last_name, SUM(p.amount) Tot_Paid
+
+FROM customer c
+
+JOIN payment p ON
+
+	c.customer_id = p.customer_id
+
+GROUP BY c.customer_id, c.first_name, c.last_name
+
+ORDER BY c.last_name, c.first_name
+
+
+results:
+505	RAFAEL	ABNEY	97.79
+504	NATHANIEL	ADAM	133.72
+36	KATHLEEN	ADAMS	92.73
+96	DIANA	ALEXANDER	105.73
+470	GORDON	ALLARD	160.68
+27	SHIRLEY	ALLEN	126.69
+..
+
+7a.
+SELECT a.title
+
+FROM film a
+
+
+WHERE a.language_id IN 
+	(
+  SELECT DISTINCT l.language_id
+  
+	   FROM language l
+  
+	   WHERE l.name = 'English'
+  )
+
+AND (a.title LIKE'K%' OR  a.title LIKE 'Q')
+
+
+results:
+KANE EXORCIST
+KARATE MOON
+KENTUCKIAN GIANT
+KICK SAVANNAH
+KILL BROTHERHOOD
+KILLER INNOCENT
+..
+
+7b.
+SELECT a.first_name, a.last_name
+
+FROM actor a
+
+WHERE a.actor_id in ( SELECT b.actor_id
+       
+	FROM film_actor b
+       
+	JOIN film c on
+       
+	b.film_id = c.film_id
+      
+	WHERE c.title = 'Alone Trip'
+       
+       )
+
+
+result:
+ED	CHASE
+KARL	BERRY
+UMA	WOOD
+WOODY	JOLIE
+SPENCER	DEPP
+CHRIS	DEPP
+LAURENCE	BULLOCK
+RENEE	BALL
+
+7c.
+
+SELECT c.first_name, c.last_name, c.email
+
+FROM customer c
+
+JOIN address a on
+
+	c.address_id = a.address_id
+
+join city b on
+	
+a.city_id = b.city_id
+
+JOIN country d 
+	
+b.country_id = d.country_id
+
+WHERE d.country = 'Canada'
+
+
+result:
+DERRICK	BOURQUE	DERRICK.BOURQUE@sakilacustomer.org
+DARRELL	POWER	DARRELL.POWER@sakilacustomer.org
+LORETTA	CARPENTER	LORETTA.CARPENTER@sakilacustomer.org
+CURTIS	IRBY	CURTIS.IRBY@sakilacustomer.org
+TROY	QUIGLEY	TROY.QUIGLEY@sakilacustomer.org
+
+7d.  Used the view
+
+SELECT title
+
+FROM film_list
+
+WHERE CATEGORY = 'Family'
+
+
+results:
+AFRICAN EGG
+APACHE DIVINE
+ATLANTIS CAUSE
+BAKED CLEOPATRA
+BANG KWAI
+BEDAZZLED MARRIED
+..
+
+7E.
+SELECT f.title, COUNT(*)
+
+FROM rental a
+
+JOIN inventory b on
+
+a.inventory_id = b.inventory_id
+
+JOIN film f on
+
+b.film_id = f.film_id
+
+GROUP BY f.title
+
+ORDER BY COUNT(*) desc
+
+result:
+BUCKET BROTHERHOOD	34
+ROCKETEER MOTHER	33
+FORWARD TEMPLE	32
+GRIT CLOCKWORK	32
+JUGGLER HARDLY	32
+RIDGEMONT SUBMARINE	32
+SCALAWAG DUCK	32
+ROBBERS JOON	31
+..
+
+7f.
+SELECT * FROM sakila.sales_by_store;
+
+  
+
+SELECT 
+        CONCAT(`c`.`city`, _utf8mb3 ',', `cy`.`country`) AS `store`,
+       
+ CONCAT(`m`.`first_name`,
+                _utf8mb3 ' ',
+                `m`.`last_name`) AS `manager`,
+        
+SUM(`p`.`amount`) AS `total_sales`
+    
+FROM
+        (((((((`sakila`.`payment` `p`
+        
+JOIN `sakila`.`rental` `r` ON 
+((`p`.`rental_id` = `r`.`rental_id`)))
+        
+JOIN `sakila`.`inventory` `i` ON 
+((`r`.`inventory_id` = `i`.`inventory_id`)))
+        
+JOIN `sakila`.`store` `s` ON 
+((`i`.`store_id` = `s`.`store_id`)))
+        
+JOIN `sakila`.`address` `a` ON 
+((`s`.`address_id` = `a`.`address_id`)))
+        
+JOIN `sakila`.`city` `c` ON ((`a`.`city_id` = `c`.`city_id`)))
+        
+JOIN `sakila`.`country` `cy` ON ((`c`.`country_id` = `cy`.`country_id`)))
+        
+JOIN `sakila`.`staff` `m` ON ((`s`.`manager_staff_id` = `m`.`staff_id`)))
+    
+GROUP BY `s`.`store_id`
+    
+ORDER BY `cy`.`country` , `c`.`city`
+
+results:
+Woodridge,Australia	Jon Stephens	33726.77
+Lethbridge,Canada	Mike Hillyer	33679.79
+
+7g.
+select s.store_id, c.city, cy.country 
+
+from store s 
+        
+JOIN address a ON 
+	s.address_id = a.address_id
+        
+JOIN city c ON 
+	a.city_id = c.city_id
+        
+JOIN country cy ON 
+	c.country_id = cy.country_id 
+
+
+
+
+7h.
+select c.name , sum(p.amount) Tot_sales
+
+from film f 
+
+join film_category fc on
+
+	f.film_id = fc.film_id
+
+join category c on 
+
+	fc.category_id = c.category_id
+
+join inventory i on 
+
+	f.film_id = i.film_id
+
+join rental r on
+
+	i.inventory_id = r.inventory_id
+
+join payment p on 
+
+	r.rental_id = p.rental_id
+
+group by c.name
+
+order by sum(p.amount)  desc
+
+limit 5 
+
+
+
+
+
+results:
+Sports	5314.21
+Sci-Fi	4756.98
+Animation	4656.30
+Drama	4587.39
+Comedy	4383.58
+
+8a.
+
+CREATE VIEW top_five_genre_sales  (Genre, Tot_Sales)
+
+AS
+
+SELECT c.name , sum(p.amount) Tot_sales
+
+FROM film f 
+
+JOIN film_category fc ON
+
+	f.film_id = fc.film_id
+
+JOIN category c ON 
+
+	fc.category_id = c.category_id
+
+JOIN inventory i ON 
+
+	f.film_id = i.film_id
+
+JOIN rental r ON
+
+	i.inventory_id = r.inventory_id
+
+JOIN payment p ON 
+
+	r.rental_id = p.rental_id
+
+GROUP BY c.name
+
+ORDER BY SUM(p.amount)  DESC
+
+LIMIT 5 ;
+
+
+
+
+8b.
+SELECT * FROM sakila.top_five_genre_sales;
+
+8C.
+DROP VIEW top_five_genre_sales;
+
+ 
